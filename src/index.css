@@ -1,0 +1,610 @@
+/* One 16:9 slide, styled after apple.com.
+   Everything is sized in --u, one hundredth of the slide's width, so the slide is the
+   same picture at any window size: it shrinks or grows to fit and never scrolls. */
+
+:root {
+  color-scheme: light;
+
+  /* Apple's neutrals */
+  --page: #ffffff;
+  --tile: #f5f5f7;
+  --ink: #1d1d1f;
+  --secondary: #6e6e73;
+  --tertiary: #86868b;
+  --hairline: #d2d2d7;
+  --chip-line: rgba(0, 0, 0, 0.08);
+  --surface: #ffffff;       /* chips and the reason tile */
+  --on-ink: #ffffff;        /* text on an ink-filled pill: badge, current card, x */
+  --slot-bg: rgba(0, 0, 0, 0.035);
+  --slot-ink: #aeaeb2;
+  --chip-shadow: rgba(0, 0, 0, 0.05);
+  --chip-shadow-hover: rgba(0, 0, 0, 0.1);
+  --purple: #8a3ffc;        /* middle of the closing question's gradient */
+  /* Frosted glass, used only on the lifted card and the x badge */
+  --glass: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.5));
+  --glass-edge: rgba(255, 255, 255, 0.9);
+  --x-glass: rgba(29, 29, 31, 0.62);
+  --x-glyph: #ffffff;
+
+  /* Accents */
+  --blue: #0071e3;          /* primary button, lifted card */
+  --link: #0071e3;          /* outlined button text and edge */
+  --eyebrow: #bf4800;       /* Apple's orange eyebrow */
+  --agree: #248a3d;
+  --differ: #bf4800;
+
+  /* The two quadrant tones: pink = a person leads, blue = AI does the work */
+  --pink: #c8105a;
+  --pink-tint: #fdf0f5;
+  --pink-glow: rgba(200, 16, 90, 0.28);
+  --sky: #0066cc;
+  --sky-tint: #eef5fd;
+  --sky-glow: rgba(0, 102, 204, 0.28);
+
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+
+  --u: min(1vw, 1.7778vh);
+  /* Card text sizes, in --u. Big enough to read from the back of a lecture room. */
+  --tray-card: 1.5;
+  --map-card: 1.6;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; height: 100%; }
+
+/* Phones must not enlarge small text on their own, or the scaled slide stops fitting. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* The stage: the slide sits centred, letterboxed in white when the window is not 16:9. */
+#root {
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+
+.slide {
+  position: relative;
+  width: calc(var(--u) * 100);
+  height: calc(var(--u) * 56.25);
+  padding: calc(var(--u) * 1.8) calc(var(--u) * 3.6) calc(var(--u) * 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+
+.head { text-align: center; }
+
+.kicker {
+  margin: 0;
+  font-weight: 600;
+  font-size: calc(var(--u) * 1.25);
+  letter-spacing: -0.005em;
+  color: var(--eyebrow);
+}
+
+.fs-hint {
+  position: absolute;
+  top: calc(var(--u) * 1.9);
+  right: calc(var(--u) * 3.6);
+  font-size: calc(var(--u) * 0.95);
+  color: var(--tertiary);
+}
+
+.title {
+  margin: calc(var(--u) * 0.4) 0 0;
+  font-weight: 600;
+  font-size: calc(var(--u) * 2.6);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: calc(var(--u) * 0.6) 0 calc(var(--u) * 1.2);
+  font-size: calc(var(--u) * 1.4);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--secondary);
+}
+
+/* Once every card is placed, the subtitle becomes a question in Apple's gradient type. */
+.subtitle-closing {
+  font-weight: 600;
+  background: linear-gradient(90deg, var(--pink), var(--purple) 50%, var(--sky));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fade-in 500ms ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* The big tile that holds the map, reason and tray */
+
+.panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.8);
+  background: var(--tile);
+  border-radius: calc(var(--u) * 2);
+  padding: calc(var(--u) * 1.1) calc(var(--u) * 1.6) calc(var(--u) * 1.2);
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge {
+  font-weight: 600;
+  font-size: calc(var(--u) * 1);
+  letter-spacing: -0.005em;
+  color: var(--on-ink);
+  background: var(--ink);
+  padding: calc(var(--u) * 0.35) calc(var(--u) * 1);
+  border-radius: 980px;
+}
+
+.legend {
+  display: flex;
+  gap: calc(var(--u) * 1.8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: calc(var(--u) * 1.05);
+  color: var(--secondary);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.5);
+}
+
+.tone-icon {
+  width: 1.1em;
+  height: 1.1em;
+  flex: none;
+}
+
+.legend-pink .tone-icon { color: var(--pink); }
+.legend-blue .tone-icon { color: var(--sky); }
+
+.status { display: flex; }
+
+.dots {
+  display: flex;
+  gap: calc(var(--u) * 0.45);
+}
+
+.dot {
+  width: calc(var(--u) * 0.75);
+  height: calc(var(--u) * 0.75);
+  border-radius: 50%;
+  background: var(--hairline);
+  transition: background-color 300ms ease-out, transform 300ms ease-out;
+}
+
+.dot-pink { background: var(--pink); }
+.dot-blue { background: var(--sky); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* The 2x2 map */
+
+.map {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: calc(var(--u) * 12) 1fr 1fr;
+  /* Rows share the space equally, but a row grows if its cards need the room. */
+  grid-template-rows: auto minmax(min-content, 1fr) minmax(min-content, 1fr);
+  gap: calc(var(--u) * 0.7) calc(var(--u) * 0.9);
+}
+
+/* Both axes in the same quiet grey, like the labels in an Apple spec table,
+   so the coloured quadrant names carry the hierarchy. */
+.col-head,
+.row-head {
+  margin: 0;
+  font-weight: 600;
+  font-size: calc(var(--u) * 1.25);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: var(--secondary);
+}
+
+.row-head {
+  align-self: center;
+  padding: 0 calc(var(--u) * 0.6);
+}
+
+.quad {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--sky-tint);
+  border-radius: calc(var(--u) * 1.4);
+  padding: calc(var(--u) * 0.8) calc(var(--u) * 1);
+  --tone: var(--sky);
+  --glow: var(--sky-glow);
+}
+
+.quad-pink {
+  background: var(--pink-tint);
+  --tone: var(--pink);
+  --glow: var(--pink-glow);
+}
+
+.quad-name {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  margin: 0 0 calc(var(--u) * 0.55);
+  font-weight: 600;
+  font-size: calc(var(--u) * 1.3);
+  letter-spacing: -0.01em;
+  color: var(--tone);
+}
+
+.quad-cards {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: calc(var(--u) * 0.5);
+}
+
+/* While a card waits for the class's call, every quadrant becomes one big button. */
+.quad-pick {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.quad-open { box-shadow: inset 0 0 0 2px rgba(0, 113, 227, 0.3); }
+.quad-open:hover { box-shadow: inset 0 0 0 3px var(--blue); }
+
+.quad-pick:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Task cards: white chips */
+
+.card {
+  font: inherit;
+  font-weight: 500;
+  font-size: calc(var(--u) * var(--tray-card));
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--chip-line);
+  border-radius: calc(var(--u) * 1.2);
+  box-shadow: 0 1px 2px var(--chip-shadow);
+  padding: calc(var(--u) * 0.5) calc(var(--u) * 1.05);
+  cursor: pointer;
+  text-align: left;
+  transition: box-shadow 150ms ease-out, transform 150ms ease-out, scale 100ms ease-out;
+}
+
+.card:hover { box-shadow: 0 4px 14px var(--chip-shadow-hover); }
+
+/* Pressed: controls shrink a touch while held, as on iOS, so every click feels confirmed. */
+.card:active,
+.btn:active:not(:disabled),
+.link:active,
+.card-x:active { scale: 0.97; }
+
+.quad:has(.quad-pick:active) { scale: 0.99; }
+
+.btn,
+.link,
+.quad { transition: scale 100ms ease-out; }
+
+.card-slot:active { scale: none; }
+
+.card:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.placed {
+  position: relative;
+  display: inline-flex;
+  border-radius: calc(var(--u) * 1.2); /* so the flight shadow follows the chip's corners */
+}
+
+.card-placed {
+  font-size: calc(var(--u) * var(--map-card));
+  padding: calc(var(--u) * 0.4) calc(var(--u) * 0.95);
+}
+
+/* The small x that sends a placed card back. Hidden until you point at the card. */
+.card-x {
+  position: absolute;
+  top: calc(var(--u) * -0.7);
+  right: calc(var(--u) * -0.7);
+  width: max(24px, calc(var(--u) * 1.7));
+  height: max(24px, calc(var(--u) * 1.7));
+  border-radius: 50%;
+  border: 1px solid var(--glass-edge);
+  background: var(--x-glass);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  color: var(--x-glyph);
+  font: 500 calc(var(--u) * 1.2) / 1 var(--sans);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease-out, scale 100ms ease-out;
+}
+
+.placed:hover .card-x,
+.placed:focus-within .card-x { opacity: 1; }
+
+.card-x:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.card-pending {
+  border-color: var(--glass-edge);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 var(--glass-edge),
+    0 0 0 3px var(--blue),
+    0 12px 28px rgba(0, 113, 227, 0.28);
+  transform: translateY(-5px);
+}
+
+.card-current {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+
+/* Where a placed card came from: its name stays, faint, so the tray never reads as blank. */
+.card-slot {
+  color: var(--slot-ink);
+  background: var(--slot-bg);
+  border-color: transparent;
+  box-shadow: none;
+  cursor: default;
+  user-select: none;
+}
+
+.card-slot:hover { box-shadow: none; }
+
+/* Reason strip: a white tile with a slim bar in the colour of the card's quadrant */
+
+.reason {
+  position: relative;
+  background: var(--surface);
+  border-radius: calc(var(--u) * 1.2);
+  padding: calc(var(--u) * 0.65) calc(var(--u) * 1.4) calc(var(--u) * 0.65) calc(var(--u) * 2);
+  min-height: calc(var(--u) * 4.2);
+  display: flex;
+  align-items: center;
+  --bar: var(--hairline);
+}
+
+.reason::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--u) * 0.8);
+  top: calc(var(--u) * 0.8);
+  bottom: calc(var(--u) * 0.8);
+  width: calc(var(--u) * 0.35);
+  border-radius: 99px;
+  background: var(--bar);
+  transition: background-color 200ms ease-out;
+}
+
+.reason-pink { --bar: var(--pink); }
+.reason-blue { --bar: var(--sky); }
+.reason-pending { --bar: var(--blue); }
+
+.reason p {
+  margin: 0;
+  font-size: calc(var(--u) * 1.3);
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+.reason strong { font-weight: 600; }
+
+.reason-body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.2);
+}
+
+.reason .reason-top {
+  font-size: calc(var(--u) * 1.1);
+  line-height: 1.3;
+}
+
+.reason-sep {
+  margin: 0 calc(var(--u) * 0.45);
+  color: var(--tertiary);
+}
+
+.reason .reason-text {
+  font-size: calc(var(--u) * 1.45);
+  line-height: 1.35;
+  letter-spacing: -0.012em;
+}
+
+.reason-start { color: var(--secondary); }
+
+.verdict { font-weight: 600; }
+.verdict-none { color: var(--secondary); }
+.verdict-agree { color: var(--agree); }
+.verdict-differ { color: var(--differ); }
+
+.verdict-icon {
+  width: 1.15em;
+  height: 1.15em;
+  margin-right: 0.3em;
+  vertical-align: -0.2em;
+}
+
+/* Tray and buttons */
+
+.tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--u) * 0.55);
+}
+
+.btn {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: calc(var(--u) * var(--tray-card));
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--link);
+  background: transparent;
+  border: 1px solid var(--link);
+  border-radius: 980px;
+  padding: calc(var(--u) * 0.5) calc(var(--u) * 1.3);
+  cursor: pointer;
+}
+
+.btn-solid {
+  background: var(--blue);
+  color: #fff;
+}
+
+.btn-solid:hover { background: #0077ed; }
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* "Start over ›", in the style of apple.com's "Learn more ›" links */
+.link {
+  font: inherit;
+  font-size: calc(var(--u) * var(--tray-card));
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--sky);
+  background: none;
+  border: 0;
+  padding: calc(var(--u) * 0.5) calc(var(--u) * 0.6);
+  cursor: pointer;
+}
+
+.link:hover { text-decoration: underline; }
+
+.link:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Footer */
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--u) * 2);
+  margin-top: calc(var(--u) * 0.8);
+  padding-top: calc(var(--u) * 0.7);
+  border-top: 1px solid var(--hairline);
+  font-size: calc(var(--u) * 1);
+  color: var(--tertiary);
+}
+
+.foot > span { white-space: nowrap; }
+
+/* Dark theme, toggled with D for dim lecture halls. It follows Apple's dark product pages,
+   and it never follows the laptop's own dark mode, so the slide only changes on purpose. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #000000;
+  --tile: #161617;
+  --ink: #f5f5f7;
+  --secondary: #a1a1a6;
+  --tertiary: #86868b;
+  --hairline: #424245;
+  --chip-line: rgba(255, 255, 255, 0.1);
+  --surface: #2c2c2e;
+  --on-ink: #1d1d1f;
+  --slot-bg: rgba(255, 255, 255, 0.05);
+  --slot-ink: #636366;
+  --chip-shadow: rgba(0, 0, 0, 0.4);
+  --chip-shadow-hover: rgba(0, 0, 0, 0.6);
+  --purple: #bf5af2;
+  --glass: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+  --glass-edge: rgba(255, 255, 255, 0.35);
+  --x-glass: rgba(245, 245, 247, 0.7);
+  --x-glyph: #1d1d1f;
+  --eyebrow: #f56300;
+  --agree: #30d158;
+  --differ: #ff9f0a;
+  --pink: #ff6b9d;
+  --pink-tint: #2a1520;
+  --pink-glow: rgba(255, 107, 157, 0.35);
+  --sky: #2997ff;
+  --link: #2997ff;
+  --sky-tint: #0d1f33;
+  --sky-glow: rgba(41, 151, 255, 0.35);
+}
+
+/* A phone held upright shows the slide small; one line under it says to turn the phone. */
+.rotate-hint {
+  display: none;
+  margin: 0;
+  font-size: 14px;
+  color: var(--tertiary);
+  text-align: center;
+}
+
+@media (orientation: portrait) and (max-width: 600px) {
+  #root { align-content: center; gap: 16px; }
+  .rotate-hint { display: block; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
