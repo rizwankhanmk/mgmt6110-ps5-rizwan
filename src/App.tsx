@@ -10,6 +10,7 @@ import {
   verdictLine,
 } from './placement.ts'
 import { CheckCircle, Swap, TONE_ICON } from './icons.tsx'
+import PS5 from './PS5.tsx'
 import { COLUMNS, GROUP_MEMBERS, QUADRANTS, ROWS, TASKS, TONES, type QuadrantId } from './tasks.ts'
 
 const FLIGHT_MS = 560
@@ -222,182 +223,185 @@ export default function App() {
 
   return (
     <>
-      <main className="slide">
-        {!fullScreen && (
-          <span className="fs-hint">
-            {canFullScreen && 'Press F for full screen · '}D for {dark ? 'light' : 'dark'}
-          </span>
-        )}
-        <header className="head">
-          <p className="kicker">Place a task · Your turn</p>
-          <h1 className="title">Where would you place each of these tasks, and who should lead it?</h1>
-          {/* Once every card is down, the instruction has done its job and the slide hands the room a question. */}
-          {placed.length === TASKS.length ? (
-            <p className="subtitle subtitle-closing" aria-live="polite">
-              All six are placed. Which one would you move, and why?
-            </p>
-          ) : (
-            <p className="subtitle">
-              Call the quadrant for each task before we click. The placements are our group's view, and you
-              may well place some differently.
-            </p>
-          )}
-        </header>
-
-        <section className="panel" aria-label="Map of human-AI collaboration">
-          <header className="panel-head">
-            <span className="badge">Human-AI Group 8</span>
-            <ul className="legend" aria-label="Colour key">
-              {(['pink', 'blue'] as const).map((tone) => {
-                const Icon = TONE_ICON[tone]
-                return (
-                  <li key={tone} className={`legend-${tone}`}>
-                    <Icon className="tone-icon" />
-                    {TONES[tone]}
-                  </li>
-                )
-              })}
-            </ul>
-            {/* Progress as page dots, like the iPhone home screen. Each dot fills in the colour of the
-                quadrant its card landed in; screen readers get the words instead. */}
-            <span className="status">
-              <span className="dots" aria-hidden="true">
-                {TASKS.map((_, i) => {
-                  const id = placed[i]
-                  const tone = id && QUADRANTS.find((q) => q.id === TASKS.find((t) => t.id === id)?.quadrant)?.tone
-                  return <span key={i} className={`dot${tone ? ` dot-${tone}` : ''}`} />
-                })}
-              </span>
-              <span className="sr-only" aria-live="polite">
-                {statusLine(placed.length, TASKS.length)}
-              </span>
+      <div className="stage">
+        <main className="slide">
+          {!fullScreen && (
+            <span className="fs-hint">
+              {canFullScreen && 'Press F for full screen · '}D for {dark ? 'light' : 'dark'}
             </span>
+          )}
+          <header className="head">
+            <p className="kicker">Place a task · Your turn</p>
+            <h1 className="title">Where would you place each of these tasks, and who should lead it?</h1>
+            {/* Once every card is down, the instruction has done its job and the slide hands the room a question. */}
+            {placed.length === TASKS.length ? (
+              <p className="subtitle subtitle-closing" aria-live="polite">
+                All six are placed. Which one would you move, and why?
+              </p>
+            ) : (
+              <p className="subtitle">
+                Call the quadrant for each task before we click. The placements are our group's view, and you
+                may well place some differently.
+              </p>
+            )}
           </header>
 
-          <div className="map">
-            <span className="corner" aria-hidden="true" />
-            <h2 className="col-head">{COLUMNS['right-answer']}</h2>
-            <h2 className="col-head">{COLUMNS['no-single-answer']}</h2>
-            {(['together', 'alone'] as const).map((row) => (
-              <Row key={row} row={row}>
-                {QUADRANTS.filter((q) => q.row === row).map((q) => (
-                  <div
-                    key={q.id}
-                    className={`quad quad-${q.tone}${pendingTask ? ' quad-open' : ''}`}
-                    ref={(el) => {
-                      if (el) quadEls.current.set(q.id, el)
-                    }}
-                  >
-                    <h3 className="quad-name">
-                      {(() => {
-                        const Icon = TONE_ICON[q.tone]
-                        return <Icon className="tone-icon" />
-                      })()}
-                      {q.name}
-                    </h3>
-                    {pendingTask && (
-                      <button
-                        className="quad-pick"
-                        onClick={() => placeCard(pendingTask.id, q.id)}
-                        aria-label={`The class called ${q.name}`}
-                      />
-                    )}
-                    <div className="quad-cards">
-                      {inQuadrant(placed, TASKS, q.id).map((t) => (
-                        <span key={t.id} ref={cardRef(t.id)} className="placed">
-                          <button
-                            className={`card card-placed${t.id === shown ? ' card-current' : ''}`}
-                            onClick={() => setShown(t.id)}
-                            aria-pressed={t.id === shown}
-                          >
-                            {t.label}
-                          </button>
-                          <button
-                            className="card-x"
-                            onClick={() => returnCard(t.id)}
-                            aria-label={`Send ${t.label} back to the tray`}
-                            title="Send back to the tray"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </Row>
-            ))}
-          </div>
-
-          <div className={`reason reason-${reasonTone}`} aria-live="polite">
-            {pendingTask ? (
-              <p>
-                Where does the class put <strong>{pendingTask.label}</strong>? Click that quadrant, or click
-                the card again to reveal without a call.
-              </p>
-            ) : shownTask ? (
-              // Two levels, as on apple.com: a small line with the task and verdict, the reason larger below.
-              <div className="reason-body">
-                <p className="reason-top">
-                  <strong>{shownTask.label}</strong>
-                  <span className="reason-sep" aria-hidden="true">
-                    ·
-                  </span>
-                  <span className={`verdict verdict-${shownVerdict}`}>
-                    {shownVerdict === 'agree' && <CheckCircle className="verdict-icon" />}
-                    {shownVerdict === 'differ' && <Swap className="verdict-icon" />}
-                    {verdictLine(quadName(guesses[shownTask.id]), quadName(shownTask.quadrant) ?? '')}
-                  </span>
-                </p>
-                <p className="reason-text">{shownTask.reason}</p>
-              </div>
-            ) : (
-              <p className="reason-start">Pick a task below to start.</p>
-            )}
-          </div>
-
-          <div className="tray">
-            {TASKS.map((t) =>
-              placed.includes(t.id) ? (
-                <span key={t.id} className="card card-slot" aria-hidden="true">
-                  {t.label}
+          <section className="panel" aria-label="Map of human-AI collaboration">
+            <header className="panel-head">
+              <span className="badge">Human-AI Group 8</span>
+              <ul className="legend" aria-label="Colour key">
+                {(['pink', 'blue'] as const).map((tone) => {
+                  const Icon = TONE_ICON[tone]
+                  return (
+                    <li key={tone} className={`legend-${tone}`}>
+                      <Icon className="tone-icon" />
+                      {TONES[tone]}
+                    </li>
+                  )
+                })}
+              </ul>
+              {/* Progress as page dots, like the iPhone home screen. Each dot fills in the colour of the
+                  quadrant its card landed in; screen readers get the words instead. */}
+              <span className="status">
+                <span className="dots" aria-hidden="true">
+                  {TASKS.map((_, i) => {
+                    const id = placed[i]
+                    const tone = id && QUADRANTS.find((q) => q.id === TASKS.find((t) => t.id === id)?.quadrant)?.tone
+                    return <span key={i} className={`dot${tone ? ` dot-${tone}` : ''}`} />
+                  })}
                 </span>
-              ) : (
-                <button
-                  key={t.id}
-                  ref={cardRef(t.id)}
-                  className={`card${t.id === pending ? ' card-pending' : ''}`}
-                  onClick={() => pickCard(t.id)}
-                  aria-pressed={t.id === pending}
-                >
-                  {t.label}
-                </button>
-              ),
-            )}
-            {placed.length === TASKS.length ? (
-              // Nothing left to show, so the dead button goes and one Apple-style text link remains.
-              <button className="link" onClick={clearAll}>
-                Start over<span aria-hidden="true"> ›</span>
-              </button>
-            ) : (
-              <>
-                <button className="btn btn-solid" onClick={showAll}>
-                  Show all
-                </button>
-                <button className="btn" onClick={clearAll} disabled={placed.length === 0}>
-                  Clear
-                </button>
-              </>
-            )}
-          </div>
-        </section>
+                <span className="sr-only" aria-live="polite">
+                  {statusLine(placed.length, TASKS.length)}
+                </span>
+              </span>
+            </header>
 
-        <footer className="foot">
-          <span>SMU · MGMT 6110 · Week 7 · The Map of Human-AI Collaboration</span>
-          <span>Human-AI Group 8{GROUP_MEMBERS.length > 0 && `: ${GROUP_MEMBERS.join(', ')}`}</span>
-        </footer>
-      </main>
-      <p className="rotate-hint">Turn your phone sideways for a bigger view.</p>
+            <div className="map">
+              <span className="corner" aria-hidden="true" />
+              <h2 className="col-head">{COLUMNS['right-answer']}</h2>
+              <h2 className="col-head">{COLUMNS['no-single-answer']}</h2>
+              {(['together', 'alone'] as const).map((row) => (
+                <Row key={row} row={row}>
+                  {QUADRANTS.filter((q) => q.row === row).map((q) => (
+                    <div
+                      key={q.id}
+                      className={`quad quad-${q.tone}${pendingTask ? ' quad-open' : ''}`}
+                      ref={(el) => {
+                        if (el) quadEls.current.set(q.id, el)
+                      }}
+                    >
+                      <h3 className="quad-name">
+                        {(() => {
+                          const Icon = TONE_ICON[q.tone]
+                          return <Icon className="tone-icon" />
+                        })()}
+                        {q.name}
+                      </h3>
+                      {pendingTask && (
+                        <button
+                          className="quad-pick"
+                          onClick={() => placeCard(pendingTask.id, q.id)}
+                          aria-label={`The class called ${q.name}`}
+                        />
+                      )}
+                      <div className="quad-cards">
+                        {inQuadrant(placed, TASKS, q.id).map((t) => (
+                          <span key={t.id} ref={cardRef(t.id)} className="placed">
+                            <button
+                              className={`card card-placed${t.id === shown ? ' card-current' : ''}`}
+                              onClick={() => setShown(t.id)}
+                              aria-pressed={t.id === shown}
+                            >
+                              {t.label}
+                            </button>
+                            <button
+                              className="card-x"
+                              onClick={() => returnCard(t.id)}
+                              aria-label={`Send ${t.label} back to the tray`}
+                              title="Send back to the tray"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </Row>
+              ))}
+            </div>
+
+            <div className={`reason reason-${reasonTone}`} aria-live="polite">
+              {pendingTask ? (
+                <p>
+                  Where does the class put <strong>{pendingTask.label}</strong>? Click that quadrant, or click
+                  the card again to reveal without a call.
+                </p>
+              ) : shownTask ? (
+                // Two levels, as on apple.com: a small line with the task and verdict, the reason larger below.
+                <div className="reason-body">
+                  <p className="reason-top">
+                    <strong>{shownTask.label}</strong>
+                    <span className="reason-sep" aria-hidden="true">
+                      ·
+                    </span>
+                    <span className={`verdict verdict-${shownVerdict}`}>
+                      {shownVerdict === 'agree' && <CheckCircle className="verdict-icon" />}
+                      {shownVerdict === 'differ' && <Swap className="verdict-icon" />}
+                      {verdictLine(quadName(guesses[shownTask.id]), quadName(shownTask.quadrant) ?? '')}
+                    </span>
+                  </p>
+                  <p className="reason-text">{shownTask.reason}</p>
+                </div>
+              ) : (
+                <p className="reason-start">Pick a task below to start.</p>
+              )}
+            </div>
+
+            <div className="tray">
+              {TASKS.map((t) =>
+                placed.includes(t.id) ? (
+                  <span key={t.id} className="card card-slot" aria-hidden="true">
+                    {t.label}
+                  </span>
+                ) : (
+                  <button
+                    key={t.id}
+                    ref={cardRef(t.id)}
+                    className={`card${t.id === pending ? ' card-pending' : ''}`}
+                    onClick={() => pickCard(t.id)}
+                    aria-pressed={t.id === pending}
+                  >
+                    {t.label}
+                  </button>
+                ),
+              )}
+              {placed.length === TASKS.length ? (
+                // Nothing left to show, so the dead button goes and one Apple-style text link remains.
+                <button className="link" onClick={clearAll}>
+                  Start over<span aria-hidden="true"> ›</span>
+                </button>
+              ) : (
+                <>
+                  <button className="btn btn-solid" onClick={showAll}>
+                    Show all
+                  </button>
+                  <button className="btn" onClick={clearAll} disabled={placed.length === 0}>
+                    Clear
+                  </button>
+                </>
+              )}
+            </div>
+          </section>
+
+          <footer className="foot">
+            <span>SMU · MGMT 6110 · Week 7 · The Map of Human-AI Collaboration</span>
+            <span>Human-AI Group 8{GROUP_MEMBERS.length > 0 && `: ${GROUP_MEMBERS.join(', ')}`}</span>
+          </footer>
+        </main>
+        <p className="rotate-hint">Turn your phone sideways for a bigger view.</p>
+      </div>
+      <PS5 />
     </>
   )
 }

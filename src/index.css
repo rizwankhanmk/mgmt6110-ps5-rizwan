@@ -1,6 +1,7 @@
-/* One 16:9 slide, styled after apple.com.
+/* One 16:9 slide, styled after apple.com, with the Problem Set 5 write-up below it.
    Everything is sized in --u, one hundredth of the slide's width, so the slide is the
-   same picture at any window size: it shrinks or grows to fit and never scrolls. */
+   same picture at any window size: it shrinks or grows to fit and never scrolls.
+   The page itself scrolls down to the write-up. */
 
 :root {
   color-scheme: light;
@@ -52,7 +53,7 @@
 
 * { box-sizing: border-box; }
 
-html, body { margin: 0; height: 100%; }
+html, body { margin: 0; min-height: 100%; }
 
 /* Phones must not enlarge small text on their own, or the scaled slide stops fitting. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -62,11 +63,12 @@ body {
   color: var(--ink);
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
-/* The stage: the slide sits centred, letterboxed in white when the window is not 16:9. */
-#root {
+/* The stage: the slide sits centred, letterboxed in white when the window is not 16:9.
+   It fills the first screen; the write-up follows below. */
+.stage {
   height: 100dvh;
   display: grid;
   place-items: center;
@@ -601,8 +603,160 @@ body {
 }
 
 @media (orientation: portrait) and (max-width: 600px) {
-  #root { align-content: center; gap: 16px; }
+  .stage { align-content: center; gap: 16px; }
   .rotate-hint { display: block; }
+}
+
+/* Problem Set 5 write-up, below the slide. Same width and type as the slide, in --u,
+   with a floor on the unit so the text stays readable on a phone. */
+
+.ps5 {
+  --base: max(8px, min(1vw, 1.7778vh));
+  --u: var(--base);
+  width: calc(var(--u) * 100);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: calc(var(--u) * 3) calc(var(--u) * 3.6) calc(var(--u) * 6);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 2.4);
+}
+
+.ps5-head {
+  text-align: center;
+  padding-top: calc(var(--u) * 2);
+  border-top: 1px solid var(--hairline);
+}
+
+/* The agent card: a grey tile like the panel, with a white tile inside for the five parts. */
+.agent {
+  background: var(--tile);
+  border-radius: calc(var(--u) * 2);
+  padding: calc(var(--u) * 1.4) calc(var(--u) * 1.6) calc(var(--u) * 1.6);
+}
+
+.agent-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--u) * 0.6) calc(var(--u) * 1.2);
+  margin-bottom: calc(var(--u) * 1);
+}
+
+.agent-name {
+  margin: 0;
+  font-weight: 600;
+  font-size: calc(var(--u) * 2);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.agent-meta {
+  font-size: calc(var(--u) * 1.05);
+  color: var(--tertiary);
+}
+
+.agent-parts {
+  margin: 0;
+  padding: calc(var(--u) * 1) calc(var(--u) * 1.4) calc(var(--u) * 1) calc(var(--u) * 3.2);
+  background: var(--surface);
+  border-radius: calc(var(--u) * 1.2);
+  font-size: calc(var(--u) * 1.3);
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.5);
+}
+
+.agent-parts li { padding-left: calc(var(--u) * 0.3); }
+.agent-parts li::marker { color: var(--tertiary); font-weight: 600; }
+.agent-parts strong { font-weight: 600; }
+
+/* A small copy of the map: the same grid, quadrants and labels at seven tenths of the size,
+   with one marker chip where the agent sits. */
+.mini {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 0.9);
+}
+
+.mini-map {
+  --u: calc(var(--base) * 0.7);
+  width: calc(var(--base) * 70);
+  max-width: 100%;
+  grid-template-rows: auto 1fr 1fr;
+  background: var(--tile);
+  border-radius: calc(var(--base) * 2);
+  padding: calc(var(--u) * 1.2);
+}
+
+.mini-map .quad { min-height: calc(var(--u) * 10); }
+
+.mini-caption {
+  font-size: calc(var(--u) * 1.15);
+  color: var(--secondary);
+}
+
+.mini-caption strong { font-weight: 600; color: var(--ink); }
+
+.marker {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+  cursor: default;
+}
+
+.marker:hover { box-shadow: 0 1px 2px var(--chip-shadow); }
+
+/* The headings still to be written up */
+.ps5-part {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.9);
+}
+
+.ps5-h {
+  margin: 0;
+  font-weight: 600;
+  font-size: calc(var(--u) * 1.9);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.ps5-text {
+  margin: 0;
+  font-size: calc(var(--u) * 1.3);
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+.ph { color: var(--tertiary); }
+
+.shots {
+  display: grid;
+  gap: calc(var(--u) * 1);
+}
+
+.shots-3 { grid-template-columns: repeat(3, 1fr); }
+.shots-2 { grid-template-columns: repeat(2, 1fr); }
+
+/* An empty frame for a screenshot that is still to come */
+.shot {
+  aspect-ratio: 16 / 10;
+  display: grid;
+  place-items: center;
+  background: var(--tile);
+  border: 1px dashed var(--hairline);
+  border-radius: calc(var(--u) * 1.2);
+  font-size: calc(var(--u) * 1.05);
+  color: var(--tertiary);
+}
+
+@media (orientation: portrait) and (max-width: 600px) {
+  .shots-3, .shots-2 { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
