@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { TONE_ICON } from './icons.tsx'
-import { AGENT, PLACEHOLDER, SECTIONS } from './ps5.ts'
+import { AGENT, SECTIONS, type Shot } from './ps5.ts'
 import { COLUMNS, QUADRANTS, ROWS } from './tasks.ts'
 
 // The Problem Set 5 write-up, below the slide. Same type and tiles as the slide, sized in --u.
@@ -47,19 +48,37 @@ export default function PS5() {
       {SECTIONS.map((s) => (
         <section key={s.title} className="ps5-part" aria-label={s.title}>
           <h3 className="ps5-h">{s.title}</h3>
-          {s.shots > 0 && (
-            <div className={`shots shots-${s.shots}`}>
-              {Array.from({ length: s.shots }, (_, i) => (
-                <div key={i} className="shot">
-                  Screenshot {i + 1}
-                </div>
+          {s.shots.length > 0 && (
+            <div className={`shots shots-${s.shots.length}`}>
+              {s.shots.map((shot) => (
+                <ShotFrame key={shot.file} shot={shot} />
               ))}
             </div>
           )}
-          <p className="ps5-text ph">{PLACEHOLDER}</p>
+          {s.paragraphs.map((text, i) => (
+            <p key={i} className="ps5-text">
+              {text}
+            </p>
+          ))}
         </section>
       ))}
     </section>
+  )
+}
+
+/** A screenshot from public/ with its caption. Until the file is there, an empty frame
+ *  names the file to add, so the caption already sits where it will end up. */
+function ShotFrame({ shot }: { shot: Shot }) {
+  const [missing, setMissing] = useState(false)
+  return (
+    <figure className="shot-fig">
+      {missing ? (
+        <div className="shot shot-empty">{shot.file}</div>
+      ) : (
+        <img className="shot shot-img" src={`/${shot.file}`} alt="" onError={() => setMissing(true)} />
+      )}
+      <figcaption className="shot-caption">{shot.caption}</figcaption>
+    </figure>
   )
 }
 
