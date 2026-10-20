@@ -759,8 +759,8 @@ body {
 
 .shot-img {
   display: block;
-  object-fit: cover;
-  object-position: top;
+  aspect-ratio: auto;
+  height: auto;
   border: 1px solid var(--chip-line);
 }
 
